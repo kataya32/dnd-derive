@@ -1,4 +1,4 @@
-# Shared Scratchpad
+# D&D Derive
 
 ## Goals Of This Project
 - [ ] Learn Rust
