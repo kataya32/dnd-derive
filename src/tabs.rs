@@ -1,9 +1,10 @@
 use gpui::{
     ClickEvent, Context, Div, IntoElement, ParentElement, Render, Styled, Window, black, div,
-    green, red, white,
+    green, red,
 };
 
 // ToDo: Consider consolidating these!
+use gpui_component::Theme;
 use gpui_component::button::{Button, ButtonCustomVariant, ButtonVariants};
 use gpui_component::tab::{Tab, TabBar};
 use gpui_component::v_flex;
@@ -11,6 +12,7 @@ use gpui_component::v_flex;
 // Discuss Macros
 // - Useful
 // - Reason to avoid creating macros: Debugging
+// #[derive(TryFromPrimitive, IntoPrimitive)] via num_enum crate?
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(usize)]
 // Assigns numbers in order to cleanly interface with TabBar component
@@ -47,13 +49,15 @@ impl TabsWithContent {
     // AI Note: Returning `Div` explicitly here ensures the `match` statement in
     // `render_tab_content` resolves to a single consistent type.
     fn render_counter(&self, cx: &mut Context<Self>) -> Div {
+        let theme = Theme::global_mut(cx);
+
         div()
             .size_full()
             .flex()
             .items_center()
             .justify_center()
             .gap_5()
-            .bg(white())
+            .bg(theme.background)
             .child(
                 Button::new("decrement_button")
                     .custom(ButtonCustomVariant::new(cx).border(black()).hover(red()))

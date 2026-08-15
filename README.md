@@ -10,13 +10,13 @@ A DnD class builder for creating spinoff classes of other classes (including sub
 ### Features
 | Status | Feature | Description |
 |--|--|--|
-| Not Started | [Class List](#class-list) | List of All Classes | List of all classes in the system |
+| Not Started | [Class List](#class-list) | List of all classes in the system |
 | Not Started | [Class List Filters](#class-list-filters) | Sorting Filters for class list |
 | Not Started | [Hitpoint Tracker](#hitpoint-tracker) | |
 | Not Started | [Leveling System](#leveling-system) | |
 | Not Started | [Spell Tracker](#spell-tracker) | |
 | Not Started | [Spell Slot Tracker](#spell-slot-tracker) | |
-| Not Stared | [Rest Buttons](#rest-buttons) | Buttons for Long and Short Rest |
+| Not Started | [Rest Buttons](#rest-buttons) | Buttons for Long and Short Rest |
 
 #### Class List
 

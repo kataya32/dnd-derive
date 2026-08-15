@@ -1,55 +1,68 @@
-use gpui::SharedString;
-use gpui::{AppContext, Application, WindowOptions};
-use gpui_component::{Theme, ThemeRegistry};
+use gpui::{App, AppContext, Application, WindowOptions};
+use gpui_component::{Root, Theme, ThemeRegistry};
 use std::path::PathBuf;
 
 // ToDo: Discuss Modules!
-mod root_view;
+mod main_view;
 mod tabs;
-use crate::root_view::RootView;
+use crate::main_view::MainView;
 use crate::tabs::{MainTabs, TabsWithContent};
 
 fn main() {
     Application::new().run(|app| {
         gpui_component::init(app);
 
-        // Syncs system to light or dark
-        Theme::sync_system_appearance(None, app);
+        load_and_watch_themes(app);
 
-        // Set up directory monitor tracking your local themes path
-        let themes_dir = PathBuf::from("./themes");
-        let active_theme_name = SharedString::from("Molokai Light"); // Set Theme Name
+        // Standard GPUI practice
+        app.spawn(async move |app| {
+            app.open_window(WindowOptions::default(), |window, app| {
+                let view = app.new(|cx| {
+                    MainView::new(
+                        cx.new(|_| TabsWithContent {
+                            active_tab: MainTabs::CounterTab,
+                            count: 0,
+                        }),
+                        window,
+                        cx,
+                    )
+                });
 
-        if !themes_dir.exists() {
-            let _ = std::fs::create_dir_all(&themes_dir);
-        }
-
-        // Initialize filesystem watcher: See GPUI Component::Theme
-        if let Err(err) = ThemeRegistry::watch_dir(themes_dir, app, move |app| {
-            // Triggered when a file is edited inside ./themes
-            if let Some(config) = ThemeRegistry::global(app)
-                .themes()
-                .get(&active_theme_name)
-                .cloned()
-            {
-                // Mutate the active configuration framework allocation
-                Theme::global_mut(app).apply_config(&config);
-                // Invalidate drawing caches to render style updates on screen
-                app.refresh_windows();
-            }
-        }) {
-            eprintln!("Failed to bind themes file monitor: {:?}", err);
-        }
-
-        // Spin up UI context window
-        app.open_window(WindowOptions::default(), |_window, app| {
-            app.new(|cx| RootView {
-                tabs_content: cx.new(|_| TabsWithContent {
-                    active_tab: MainTabs::LevelingTab,
-                    count: 0,
-                }),
+                // See https://longbridge.github.io/gpui-component/docs/root
+                app.new(|cx| Root::new(view, window, cx))
             })
+            .expect("Failed to open window");
         })
-        .unwrap(); // ToDo: Discuss `.unwrap()`
+        .detach();
     });
+}
+
+fn load_and_watch_themes(cx: &mut App) {
+    let themes_dir = PathBuf::from("./themes");
+    if !themes_dir.exists() {
+        let _ = std::fs::create_dir_all(&themes_dir);
+    }
+
+    // Load + watch. Closure runs after initial load and on every change.
+    if let Err(err) = ThemeRegistry::watch_dir(themes_dir, cx, move |cx| {
+        let (light, dark) = {
+            let registry = ThemeRegistry::global(cx);
+            (
+                registry.themes().get("Molokai Light").cloned(),
+                registry.themes().get("Molokai Dark").cloned(),
+            )
+        };
+
+        if let Some(light) = light {
+            Theme::global_mut(cx).light_theme = light;
+        }
+        if let Some(dark) = dark {
+            Theme::global_mut(cx).dark_theme = dark;
+        }
+
+        Theme::sync_system_appearance(None, cx);
+        cx.refresh_windows();
+    }) {
+        tracing::error!(?err, "failed to bind themes file monitor");
+    }
 }
