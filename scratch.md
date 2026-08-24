@@ -113,20 +113,6 @@ impl Render for TabsWithContent {
 observe fires on any state change (generic "something happened"). subscribe requires the emitter to implement EventEmitter<T> and fires with a typed payload — closer to a discriminated event than a bare notification. This is sometimes called an "event emitter" pattern rather than pure Observer, since it carries structured data instead of just "go re-read my state." But it's still not pub-sub: there's no topic string, no broker, no decoupled many-to-many routing — you still need the concrete &Entity<Emitter> to call cx.subscribe on it in the first place.
 
 
-## ToDo: Fix theme bad practice
-From:
-```rs
-// Get access to theme
-let theme = Theme::global_mut(cx);
-```
-
-To:
-```rs
-// Remove let theme =
-// Add `use gpui_component::ActiveTheme`
-// Use the cx.theme() trait
-.bg(cx.theme().background)
-```
 
 ## ToDo: Replace Custom Variant Buttons
 From:

@@ -3,11 +3,12 @@ use gpui::{
     green, red,
 };
 
-// ToDo: Consider consolidating these!
-use gpui_component::Theme;
-use gpui_component::button::{Button, ButtonCustomVariant, ButtonVariants};
-use gpui_component::tab::{Tab, TabBar};
-use gpui_component::v_flex;
+use gpui_component::{
+    ActiveTheme, Theme,
+    button::{Button, ButtonCustomVariant, ButtonVariants},
+    tab::{Tab, TabBar},
+    v_flex,
+};
 
 // Discuss Macros
 // - Useful
@@ -46,21 +47,18 @@ pub struct TabsWithContent {
 }
 
 impl TabsWithContent {
-    // AI Note: Returning `Div` explicitly here ensures the `match` statement in
-    // `render_tab_content` resolves to a single consistent type.
     fn render_counter(&self, cx: &mut Context<Self>) -> Div {
-        let theme = Theme::global_mut(cx);
-
         div()
             .size_full()
             .flex()
             .items_center()
             .justify_center()
             .gap_5()
-            .bg(theme.background)
+            .bg(cx.theme().background)
             .child(
                 Button::new("decrement_button")
-                    .custom(ButtonCustomVariant::new(cx).border(black()).hover(red()))
+                    .danger()
+                    .outline()
                     .label("-")
                     .on_click(cx.listener(Self::decrement)),
             )
@@ -73,7 +71,8 @@ impl TabsWithContent {
             )
             .child(
                 Button::new("increment_button")
-                    .custom(ButtonCustomVariant::new(cx).border(black()).hover(green()))
+                    .success()
+                    .outline()
                     .label("+")
                     .on_click(cx.listener(Self::increment)),
             )

@@ -1,9 +1,7 @@
 use gpui::{
     Context, Entity, IntoElement, ParentElement, Render, Styled, Subscription, Window, div,
 };
-
-// ToDo: Consider consolidating these!
-use gpui_component::Theme;
+use gpui_component::{ActiveTheme, Theme};
 
 // Internal Crate
 use crate::tabs::TabsWithContent;
@@ -34,12 +32,9 @@ impl MainView {
 
 impl Render for MainView {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        // Get access to theme
-        let theme = Theme::global_mut(cx);
-
         div()
             .size_full()
-            .bg(theme.background)
+            .bg(cx.theme().background)
             // ToDo: Discuss `self`. See scratch.md
             .child(self.tabs_content.clone())
     }
