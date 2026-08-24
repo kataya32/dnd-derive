@@ -1,11 +1,6 @@
-use gpui::{
-    ClickEvent, Context, Div, IntoElement, ParentElement, Render, Styled, Window, black, div,
-    green, red,
-};
+use gpui::{Context, IntoElement, ParentElement, Render, Styled, Window, div};
 
 use gpui_component::{
-    ActiveTheme, Theme,
-    button::{Button, ButtonCustomVariant, ButtonVariants},
     tab::{Tab, TabBar},
     v_flex,
 };
@@ -22,7 +17,17 @@ pub enum MainTabs {
     CharacterSheetTab = 1,
     ClassInfoTab = 2,
     SettingsTab = 3,
-    CounterTab = 4,
+}
+
+impl MainTabs {
+    fn label(&self) -> &str {
+        match self {
+            Self::LevelingTab => "Leveling",
+            Self::CharacterSheetTab => "Character Sheet",
+            Self::ClassInfoTab => "Class Info",
+            Self::SettingsTab => "Settings",
+        }
+    }
 }
 
 // Builtin Trait
@@ -35,7 +40,6 @@ impl TryFrom<usize> for MainTabs {
             1 => Ok(Self::CharacterSheetTab),
             2 => Ok(Self::ClassInfoTab),
             3 => Ok(Self::SettingsTab),
-            4 => Ok(Self::CounterTab),
             _ => Err(()),
         }
     }
@@ -43,58 +47,15 @@ impl TryFrom<usize> for MainTabs {
 
 pub struct TabsWithContent {
     pub active_tab: MainTabs,
-    pub count: isize,
 }
 
 impl TabsWithContent {
-    fn render_counter(&self, cx: &mut Context<Self>) -> Div {
-        div()
-            .size_full()
-            .flex()
-            .items_center()
-            .justify_center()
-            .gap_5()
-            .bg(cx.theme().background)
-            .child(
-                Button::new("decrement_button")
-                    .danger()
-                    .outline()
-                    .label("-")
-                    .on_click(cx.listener(Self::decrement)),
-            )
-            .child(
-                div()
-                    .min_w_16()
-                    .text_3xl()
-                    .text_center()
-                    .child(self.count.to_string()),
-            )
-            .child(
-                Button::new("increment_button")
-                    .success()
-                    .outline()
-                    .label("+")
-                    .on_click(cx.listener(Self::increment)),
-            )
-    }
-
-    fn increment(&mut self, _event: &ClickEvent, _window: &mut Window, cx: &mut Context<Self>) {
-        self.count += 1;
-        cx.notify();
-    }
-
-    fn decrement(&mut self, _event: &ClickEvent, _window: &mut Window, cx: &mut Context<Self>) {
-        self.count -= 1;
-        cx.notify();
-    }
-
     fn render_tab_content(&self, cx: &mut Context<Self>) -> impl IntoElement {
         match self.active_tab {
-            MainTabs::LevelingTab => div().child("Leveling content"),
+            MainTabs::LevelingTab => div().child(MainTabs::LevelingTab.label()),
             MainTabs::CharacterSheetTab => div().child("Character sheet content"),
             MainTabs::ClassInfoTab => div().child("Class info content"),
             MainTabs::SettingsTab => div().child("Settings content"),
-            MainTabs::CounterTab => self.render_counter(cx),
         }
     }
 }
@@ -113,11 +74,10 @@ impl Render for TabsWithContent {
                             cx.notify();
                         }
                     }))
-                    .child(Tab::new().label("Leveling"))
-                    .child(Tab::new().label("Character"))
-                    .child(Tab::new().label("Class Info"))
-                    .child(Tab::new().label("Settings"))
-                    .child(Tab::new().label("Counter")),
+                    .child(Tab::new().label(MainTabs::LevelingTab.label()))
+                    .child(Tab::new().label(MainTabs::CharacterSheetTab.label()))
+                    .child(Tab::new().label(MainTabs::ClassInfoTab.label()))
+                    .child(Tab::new().label(MainTabs::SettingsTab.label())),
             )
             .child(div().flex_1().p_4().child(self.render_tab_content(cx)))
     }

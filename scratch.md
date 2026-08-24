@@ -57,53 +57,7 @@ Conceptually similar (method group → event handler), but worth calling out tha
 
 ## ToDo: Discuss unwraps and why to avoid the default `.unwrap()`
 
-## GrokAI recommended fix
-Add a `label` helper on the enum, then use it when building the `TabBar`.
 
-### 1. On `MainTabs` (in `tabs.rs`)
-
-```rust
-impl MainTabs {
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::LevelingTab => "Leveling",
-            Self::CharacterSheetTab => "Character",
-            Self::ClassInfoTab => "Class Info",
-            Self::SettingsTab => "Settings",
-            Self::CounterTab => "Counter",
-        }
-    }
-}
-```
-
-### 2. In `TabsWithContent::render`
-
-```rust
-impl Render for TabsWithContent {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        v_flex()
-            .child(
-                TabBar::new("content-tabs")
-                    .underline()
-                    .selected_index(self.active_tab as usize)
-                    .on_click(cx.listener(|view, &index, _, cx| {
-                        if let Ok(valid_tab) = MainTabs::try_from(index) {
-                            view.active_tab = valid_tab;
-                            cx.notify();
-                        }
-                    }))
-                    .child(Tab::new().label(MainTabs::LevelingTab.label()))
-                    .child(Tab::new().label(MainTabs::CharacterSheetTab.label()))
-                    .child(Tab::new().label(MainTabs::ClassInfoTab.label()))
-                    .child(Tab::new().label(MainTabs::SettingsTab.label()))
-                    .child(Tab::new().label(MainTabs::CounterTab.label())),
-            )
-            .child(div().flex_1().p_4().child(self.render_tab_content(cx)))
-    }
-}
-```
-
-*Reasoning: Labels live in one place; changing a tab name only requires updating `MainTabs::label`.*
 
 ## ToDo: Message Passing
 - `https://refactoring.guru/design-patterns/observer`
@@ -111,24 +65,3 @@ impl Render for TabsWithContent {
 
 ### Claude AI: Where subscribe + EventEmitter complicate the picture slightly
 observe fires on any state change (generic "something happened"). subscribe requires the emitter to implement EventEmitter<T> and fires with a typed payload — closer to a discriminated event than a bare notification. This is sometimes called an "event emitter" pattern rather than pure Observer, since it carries structured data instead of just "go re-read my state." But it's still not pub-sub: there's no topic string, no broker, no decoupled many-to-many routing — you still need the concrete &Entity<Emitter> to call cx.subscribe on it in the first place.
-
-
-
-## ToDo: Replace Custom Variant Buttons
-From:
-```rs
-Button::new("decrement_button")
-    .custom(ButtonCustomVariant::new(cx).border(black()).hover(red()))
-    .label("-")
-    .on_click(cx.listener(Self::decrement)),
-```
-
-To:
-```rs
-// No Hardcoded Colors
-Button::new("decrement_button")
-    .danger()
-    .outline()
-    .label("-")
-    .on_click(cx.listener(Self::decrement)),
-```

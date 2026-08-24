@@ -20,8 +20,7 @@ fn main() {
                 let view = app.new(|cx| {
                     MainView::new(
                         cx.new(|_| TabsWithContent {
-                            active_tab: MainTabs::CounterTab,
-                            count: 0,
+                            active_tab: MainTabs::CharacterSheetTab,
                         }),
                         window,
                         cx,
