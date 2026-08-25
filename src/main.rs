@@ -1,39 +1,31 @@
-use gpui::{App, AppContext, Application, WindowOptions};
+use gpui::{App, AppContext,  WindowOptions};
 use gpui_component::{Root, Theme, ThemeRegistry};
 use std::path::PathBuf;
 
 // ToDo: Discuss Modules!
 mod main_view;
-mod tabs;
-use crate::main_view::MainView;
-use crate::tabs::{MainTabs, TabsWithContent};
+use crate::main_view::{MainContent, MainView};
 
 fn main() {
-    Application::new().run(|app| {
-        gpui_component::init(app);
+    gpui_platform::application()
+        .with_assets(gpui_component_assets::Assets)
+        .run(|app| {
+            gpui_component::init(app);
 
-        load_and_watch_themes(app);
+            load_and_watch_themes(app);
 
-        // Standard GPUI practice
-        app.spawn(async move |app| {
-            app.open_window(WindowOptions::default(), |window, app| {
-                let view = app.new(|cx| {
-                    MainView::new(
-                        cx.new(|_| TabsWithContent {
-                            active_tab: MainTabs::CharacterSheetTab,
-                        }),
-                        window,
-                        cx,
-                    )
-                });
-
-                // See https://longbridge.github.io/gpui-component/docs/root
-                app.new(|cx| Root::new(view, window, cx))
+            // Standard GPUI practice
+            app.spawn(async move |cx| {
+                cx.open_window(WindowOptions::default(), |window, cx| {
+                    let main_content = cx.new(|_| MainContent::new());
+                    let view = cx.new(|cx| MainView::new(main_content, cx));
+                    // This first level on the window, should be a Root.
+                    cx.new(|cx| Root::new(view, window, cx))
+                })
+                .expect("Failed to open window");
             })
-            .expect("Failed to open window");
-        })
-        .detach();
-    });
+            .detach();
+        });
 }
 
 fn load_and_watch_themes(cx: &mut App) {

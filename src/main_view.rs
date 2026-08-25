@@ -1,41 +1,105 @@
 use gpui::{
-    Context, Entity, IntoElement, ParentElement, Render, Styled, Subscription, Window, div,
+    Context, Entity, EventEmitter, IntoElement, ParentElement, Render, Styled, Window, div,
+    prelude::FluentBuilder,
 };
-use gpui_component::{ActiveTheme, Theme};
-
-// Internal Crate
-use crate::tabs::TabsWithContent;
+use gpui_component::sidebar::{
+    Sidebar, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuItem,
+};
+use gpui_component::{ActiveTheme, Icon, IconName, TitleBar, button::Button, h_flex, v_flex};
 
 pub struct MainView {
-    pub tabs_content: Entity<TabsWithContent>,
-    _appearance_subscription: Subscription, // ToDo: Discuss Message Passing both pros and cons
-                                            // Count Moved
+    sidebar_collapsed: bool,
+    main_content: Entity<MainContent>,
 }
 
 impl MainView {
-    pub fn new(
-        tabs_content: Entity<TabsWithContent>,
-        window: &mut Window,
-        _cx: &mut Context<Self>,
-    ) -> Self {
-        let subscription = window.observe_window_appearance(|window, cx| {
-            Theme::sync_system_appearance(Some(window), cx);
-            cx.refresh_windows();
-        });
-
+    pub fn new(main_content: Entity<MainContent>, cx: &mut Context<Self>) -> Self {
         Self {
-            tabs_content,
-            _appearance_subscription: subscription,
+            sidebar_collapsed: false,
+            main_content: main_content,
         }
+    }
+
+    pub fn toggle_sidebar(&mut self, cx: &mut Context<Self>) {
+        self.sidebar_collapsed = !self.sidebar_collapsed;
+        cx.notify();
     }
 }
 
 impl Render for MainView {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        div()
+        v_flex()
+            .h_full()
+            .child(
+                TitleBar::new()
+                    .bg(cx.theme().background)
+                    .border_color(cx.theme().border)
+                    .child(div().text_color(cx.theme().foreground).child("Rust Vault")),
+            )
+            .child(
+                h_flex()
+                    .h_full()
+                    .child(
+                        Sidebar::new("left-sidebar")
+                            .collapsible(true)
+                            .collapsed(self.sidebar_collapsed)
+                            .header(
+                                SidebarHeader::new().child(
+                                    h_flex()
+                                        .child(Icon::new(IconName::Building2))
+                                        .when(!self.sidebar_collapsed, |this| this.child("Home")),
+                                ),
+                            )
+                            .child(
+                                SidebarGroup::new("Navigation").child(
+                                    SidebarMenu::new()
+                                        .child(
+                                            SidebarMenuItem::new("Dashboard")
+                                                .icon(IconName::LayoutDashboard)
+                                                .on_click(|_, _, _| println!("Dashboard clicked")),
+                                        )
+                                        .child(
+                                            SidebarMenuItem::new("Settings")
+                                                .icon(IconName::Settings)
+                                                .on_click(|_, _, _| println!("Settings clicked")),
+                                        ),
+                                ),
+                            )
+                            .footer(SidebarFooter::new().child("User Profile")),
+                    )
+                    .child(self.main_content.clone()),
+            )
+    }
+}
+
+pub enum MainContentEvent {
+    ToggleSidebar,
+}
+
+pub struct MainContent;
+
+impl EventEmitter<MainContentEvent> for MainContent {}
+
+impl MainContent {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Render for MainContent {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        v_flex()
+            .gap_2()
             .size_full()
-            .bg(cx.theme().background)
-            // ToDo: Discuss `self`. See scratch.md
-            .child(self.tabs_content.clone())
+            .items_center()
+            .justify_center()
+            .child("Hello, World!")
+            .child(
+                Button::new("sidebar-toggle")
+                    .label("Goodbye Cruel World")
+                    .on_click(cx.listener(|_this, _event, _window, cx| {
+                        cx.emit(MainContentEvent::ToggleSidebar);
+                    })),
+            )
     }
 }
