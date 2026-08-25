@@ -76,7 +76,7 @@ impl MainContent {
                                     .text_2xl()
                                     .font_bold()
                                     .child(Icon::new(IconName::User).size_10())
-                                    .child(format!("{}", c.name)),
+                                    .child(c.name.clone()),
                             )
                             .child(format!("{} -- (Lvl {})", c.class, c.level))
                             .on_click(cx.listener(move |this, _, _, cx| {
