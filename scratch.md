@@ -5,6 +5,11 @@ D&D Character Management System
 - **Character Creation Wizard:** Fullscreen, breadcrumbs, step by step
 - **Settings Page:** GPUI component settings component
 
+## Sidebar Layout:
+Header: User Account
+Content: List of Characters
+Footer: Useful buttons (Settings, etc.)
+
 ## On Application Launch User Sees (Home Page):
 - List of Existing Characters
 - Create New Character Button
@@ -19,7 +24,7 @@ D&D Character Management System
   - Proficiencies
   - Languages
   - Skills
-  - Actions (PlaceHolder) | Spells | Inventory | Features & Traits | Background | Notes | Extras
+  - Actions | Spells | Inventory | Features & Traits | Background | Notes | Extras
 - Dice Rolling
 
 ## On Create New Character:

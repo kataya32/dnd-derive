@@ -1,10 +1,16 @@
-use gpui::{App, AppContext,  WindowOptions};
+use gpui::{App, AppContext, WindowOptions};
 use gpui_component::{Root, Theme, ThemeRegistry};
 use std::path::PathBuf;
 
 // ToDo: Discuss Modules!
+mod app_routes;
+mod character;
+mod main_content;
 mod main_view;
-use crate::main_view::{MainContent, MainView};
+
+use crate::character::CharacterStore;
+use crate::main_content::MainContent;
+use crate::main_view::MainView;
 
 fn main() {
     gpui_platform::application()
@@ -17,10 +23,12 @@ fn main() {
             // Standard GPUI practice
             app.spawn(async move |cx| {
                 cx.open_window(WindowOptions::default(), |window, cx| {
-                    let main_content = cx.new(|_| MainContent::new());
-                    let view = cx.new(|cx| MainView::new(main_content, cx));
+                    let character_store = cx.new(|_| CharacterStore::new());
+                    let main_content = cx.new(|cx| MainContent::new(character_store.clone(), cx));
+                    let main_view = cx.new(|cx| MainView::new(character_store, main_content, cx));
+
                     // This first level on the window, should be a Root.
-                    cx.new(|cx| Root::new(view, window, cx))
+                    cx.new(|cx| Root::new(main_view, window, cx))
                 })
                 .expect("Failed to open window");
             })
