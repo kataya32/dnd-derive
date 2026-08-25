@@ -1,10 +1,15 @@
 use crate::app_routes::AppRoute;
-use crate::character::{CharacterCreationState, CharacterStore};
+use crate::character::{CharacterCreationState, CharacterId, CharacterStore};
 use gpui::{
-    App, Context, Entity, EventEmitter, InteractiveElement, IntoElement, ParentElement, Render,
-    SharedString, StatefulInteractiveElement, Styled, Subscription, Window, div,
+    App, Context, Div, Entity, EventEmitter, InteractiveElement, IntoElement, ParentElement,
+    Render, SharedString, StatefulInteractiveElement, Styled, Subscription, Window, div,
 };
-use gpui_component::{ActiveTheme, StyledExt, button::Button, h_flex, v_flex};
+use gpui_component::{
+    ActiveTheme, StyledExt,
+    button::{Button, ButtonVariants},
+    h_flex, v_flex,
+};
+use gpui_component::{Icon, IconName};
 
 pub enum MainContentEvent {
     ToggleSidebar,
@@ -41,165 +46,182 @@ impl MainContent {
         cx.emit(MainContentEvent::Navigate(route));
         cx.notify();
     }
-}
 
-impl Render for MainContent {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_home(&self, cx: &mut Context<Self>) -> Div {
         let characters = self.character_store.read(cx).characters().to_vec();
-
-        match &self.current_route {
-            AppRoute::Home => v_flex()
-                .size_full()
-                .p_6()
-                .gap_4()
-                .child(
-                    div()
-                        .text_2xl()
-                        .font_bold()
-                        .child("Your Characters"),
-                )
-                .child(
-                    h_flex().gap_4().children(characters.iter().map(|c| {
+        v_flex()
+            .size_full()
+            .p_6()
+            .gap_4()
+            .child(div().text_2xl().font_bold().child("Characters"))
+            .child(
+                div()
+                    .flex()
+                    .w_full()
+                    .gap_4()
+                    .children(characters.iter().map(|c| {
                         let id = c.id;
                         div()
                             .id(("character-card", id.to_usize()))
+                            .w_full()
                             .p_4()
                             .border_1()
+                            .border_color(cx.theme().accent)
                             .rounded_md()
                             .cursor_pointer()
                             .hover(|s| s.bg(cx.theme().accent.opacity(0.1)))
-                            .child(format!("{} – {} (Lvl {})", c.name, c.class, c.level))
+                            .child(
+                                h_flex()
+                                    .gap_4()
+                                    .text_2xl()
+                                    .font_bold()
+                                    .child(Icon::new(IconName::User).size_10())
+                                    .child(format!("{}", c.name)),
+                            )
+                            .child(format!("{} -- (Lvl {})", c.class, c.level))
                             .on_click(cx.listener(move |this, _, _, cx| {
                                 this.navigate(AppRoute::CharacterSheet(id), cx);
                             }))
                     })),
-                )
-                .child(
-                    Button::new("create-character")
-                        .label("+ Create New Character")
-                        .on_click(cx.listener(|this, _, _, cx| {
-                            this.navigate(AppRoute::CharacterCreation, cx);
-                        })),
-                )
-                .into_any_element(),
+            )
+            .child(
+                Button::new("create-character")
+                    .label("+ Create New Character")
+                    .on_click(cx.listener(|this, _, _, cx| {
+                        this.navigate(AppRoute::CharacterCreation, cx);
+                    })),
+            )
+    }
 
-            AppRoute::CharacterSheet(id) => {
-                let character = self.character_store.read(cx).get(*id);
-                v_flex()
-                    .size_full()
-                    .p_6()
+    fn render_character_sheet(&self, id: CharacterId, cx: &mut Context<Self>) -> Div {
+        let character = self.character_store.read(cx).get(id);
+        v_flex()
+            .size_full()
+            .p_6()
+            .gap_4()
+            .child(
+                h_flex()
                     .gap_4()
                     .child(
-                        h_flex()
-                            .justify_between()
-                            .child(
-                                div()
-                                    .text_2xl()
-                                    .font_bold()
-                                    .child(
-                                        character
-                                            .map(|c| c.name.clone())
-                                            .unwrap_or_else(|| "Unknown".into()),
-                                    ),
-                            )
-                            .child(
-                                Button::new("back-home")
-                                    .label("← Back")
-                                    .on_click(cx.listener(|this, _, _, cx| {
-                                        this.navigate(AppRoute::Home, cx);
-                                    })),
-                            ),
+                        Button::new("back-home")
+                            .ghost()
+                            .icon(IconName::ArrowLeft)
+                            .on_click(cx.listener(|this, _, _, cx| {
+                                this.navigate(AppRoute::Home, cx);
+                            })),
                     )
-                    .child(section_header("Stats & Core"))
-                    .child(placeholder_box("Ability Scores • Proficiency Bonus • Speed • HP", cx))
-                    .child(section_header("Saving Throws & Skills"))
-                    .child(placeholder_box("Saving Throws • Skills • Passive Perception", cx))
-                    .child(section_header("Proficiencies & Languages"))
-                    .child(placeholder_box("Armor • Weapons • Tools • Languages", cx))
-                    .child(section_header("Tabs"))
-                    .child(placeholder_box(
-                        "Actions | Spells | Inventory | Features & Traits | Background | Notes | Extras",
-                        cx,
-                    ))
-                    .child(section_header("Dice Rolling"))
-                    .child(placeholder_box("Quick dice roller UI goes here", cx))
-                    .into_any_element()
-            }
-
-            AppRoute::CharacterCreation => v_flex()
-                .size_full()
-                .p_6()
-                .gap_4()
-                .child(
-                    h_flex()
-                        .justify_between()
-                        .child(div().text_2xl().font_bold().child("Create Character"))
-                        .child(
-                            Button::new("cancel-creation")
-                                .label("Cancel")
-                                .on_click(cx.listener(|this, _, _, cx| {
-                                    this.navigate(AppRoute::Home, cx);
-                                })),
+                    .child(
+                        div().text_2xl().font_bold().child(
+                            character
+                                .map(|c| c.name.clone())
+                                .unwrap_or_else(|| "Unknown".into()),
                         ),
-                )
-                .child(placeholder_box(
-                    "Breadcrumbs: Name → Preferences → Class → Level → Background → Race → Abilities → Equipment",
-                    cx,
-                ))
-                .child(section_header("1. Character Name"))
-                .child(placeholder_box("Text input for name", cx))
-                .child(section_header("2. Preferences"))
-                .child(placeholder_box(
-                    "Sources • Advancement (Milestone/XP) • Prerequisites • Encumbrance • Ignore Coin Weight",
-                    cx,
-                ))
-                .child(section_header("3. Class Selector"))
-                .child(placeholder_box("Class list + Info button per class", cx))
-                .child(section_header("4. Level-based Config"))
-                .child(placeholder_box("Known Spells (filtered) • Multiclass option", cx))
-                .child(section_header("5. Background"))
-                .child(placeholder_box(
-                    "Alignment • Faith • Lifestyle • Traits • Ability Scores defaults",
-                    cx,
-                ))
-                .child(section_header("6. Race Selector"))
-                .child(placeholder_box("Race list + Info button", cx))
-                .child(section_header("7. Ability Generation"))
-                .child(placeholder_box(
-                    "Manual Roll (default) • Assign rolls to stats • Override option",
-                    cx,
-                ))
-                .child(section_header("8. Equipment"))
-                .child(placeholder_box("Starting equipment choices", cx))
-                .child(
-                    Button::new("finish-creation")
-                        .label("Finish & Save (placeholder)")
-                        .on_click(|_, _, _| println!("Save character – implement later")),
-                )
-                .into_any_element(),
+                    ),
+            )
+            .child(section_header("Stats & Core"))
+            .child(placeholder_box(
+                "Ability Scores • Proficiency Bonus • Speed • HP",
+                cx,
+            ))
+            .child(section_header("Saving Throws & Skills"))
+            .child(placeholder_box(
+                "Saving Throws • Skills • Passive Perception",
+                cx,
+            ))
+            .child(section_header("Proficiencies & Languages"))
+            .child(placeholder_box("Armor • Weapons • Tools • Languages", cx))
+            .child(section_header("Tabs"))
+            .child(placeholder_box(
+                "Actions | Spells | Inventory | Features & Traits | Background | Notes | Extras",
+                cx,
+            ))
+            .child(section_header("Dice Rolling"))
+            .child(placeholder_box("Quick dice roller UI goes here", cx))
+    }
 
-            AppRoute::Settings => v_flex()
-                .size_full()
-                .p_6()
-                .gap_4()
-                .child(
-                    h_flex()
-                        .justify_between()
-                        .child(div().text_2xl().font_bold().child("Settings"))
-                        .child(
-                            Button::new("back-from-settings")
-                                .label("← Back")
-                                .on_click(cx.listener(|this, _, _, cx| {
-                                    this.navigate(AppRoute::Home, cx);
-                                })),
-                        ),
-                )
-                .child(placeholder_box(
-                    "GPUI theme / appearance settings component goes here",
-                    cx,
-                ))
-                .child(placeholder_box("Other app preferences…", cx))
-                .into_any_element(),
+    fn render_character_creation(&self, cx: &mut Context<Self>) -> Div {
+        v_flex()
+            .size_full()
+            .p_6()
+            .gap_4()
+            .child(
+                h_flex()
+                    .justify_between()
+                    .child(div().text_2xl().font_bold().child("Create Character"))
+                    .child(
+                        Button::new("cancel-creation")
+                            .label("Cancel")
+                            .on_click(cx.listener(|this, _, _, cx| {
+                                this.navigate(AppRoute::Home, cx);
+                            })),
+                    ),
+            )
+            .child(placeholder_box(
+                "Breadcrumbs: Name → Preferences → Class → Level → Background → Race → Abilities → Equipment",
+                cx,
+            ))
+            .child(section_header("1. Character Name"))
+            .child(placeholder_box("Text input for name", cx))
+            .child(section_header("2. Preferences"))
+            .child(placeholder_box(
+                "Sources • Advancement (Milestone/XP) • Prerequisites • Encumbrance • Ignore Coin Weight",
+                cx,
+            ))
+            .child(section_header("3. Class Selector"))
+            .child(placeholder_box("Class list + Info button per class", cx))
+            .child(section_header("4. Level-based Config"))
+            .child(placeholder_box("Known Spells (filtered) • Multiclass option", cx))
+            .child(section_header("5. Background"))
+            .child(placeholder_box(
+                "Alignment • Faith • Lifestyle • Traits • Ability Scores defaults",
+                cx,
+            ))
+            .child(section_header("6. Race Selector"))
+            .child(placeholder_box("Race list + Info button", cx))
+            .child(section_header("7. Ability Generation"))
+            .child(placeholder_box(
+                "Manual Roll (default) • Assign rolls to stats • Override option",
+                cx,
+            ))
+            .child(section_header("8. Equipment"))
+            .child(placeholder_box("Starting equipment choices", cx))
+            .child(
+                Button::new("finish-creation")
+                    .label("Finish & Save (placeholder)")
+                    .on_click(|_, _, _| println!("Save character – implement later")),
+            )
+    }
+
+    fn render_settings(&self, cx: &mut Context<Self>) -> Div {
+        v_flex()
+            .size_full()
+            .p_6()
+            .gap_4()
+            .child(
+                h_flex()
+                    .justify_between()
+                    .child(div().text_2xl().font_bold().child("Settings"))
+                    .child(Button::new("back-from-settings").label("← Back").on_click(
+                        cx.listener(|this, _, _, cx| {
+                            this.navigate(AppRoute::Home, cx);
+                        }),
+                    )),
+            )
+            .child(placeholder_box(
+                "GPUI theme / appearance settings component goes here",
+                cx,
+            ))
+            .child(placeholder_box("Other app preferences…", cx))
+    }
+}
+
+impl Render for MainContent {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        match &self.current_route {
+            AppRoute::Home => self.render_home(cx),
+            AppRoute::CharacterSheet(id) => self.render_character_sheet(*id, cx),
+            AppRoute::CharacterCreation => self.render_character_creation(cx),
+            AppRoute::Settings => self.render_settings(cx),
         }
     }
 }

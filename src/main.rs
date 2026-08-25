@@ -25,7 +25,8 @@ fn main() {
                 cx.open_window(WindowOptions::default(), |window, cx| {
                     let character_store = cx.new(|_| CharacterStore::new());
                     let main_content = cx.new(|cx| MainContent::new(character_store.clone(), cx));
-                    let main_view = cx.new(|cx| MainView::new(character_store, main_content, cx));
+                    let main_view =
+                        cx.new(|cx| MainView::new(character_store, main_content, window, cx));
 
                     // This first level on the window, should be a Root.
                     cx.new(|cx| Root::new(main_view, window, cx))

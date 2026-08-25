@@ -5,10 +5,13 @@ use gpui::{
     Context, Entity, IntoElement, ParentElement, Render, SharedString, Styled, Subscription,
     Window, div, prelude::FluentBuilder,
 };
+
 use gpui_component::sidebar::{
     Sidebar, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuItem,
 };
-use gpui_component::{ActiveTheme, Icon, IconName, TitleBar, button::Button, h_flex, v_flex};
+use gpui_component::{
+    ActiveTheme, Icon, IconName, Theme, TitleBar, button::Button, h_flex, v_flex,
+};
 
 /// MainView (Sidebar + TitleBar + Content)
 pub struct MainView {
@@ -23,17 +26,16 @@ impl MainView {
     pub fn new(
         character_store: Entity<CharacterStore>,
         main_content: Entity<MainContent>,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Self {
         let mut subscriptions = Vec::new();
-
         // React when the character list changes so the sidebar re-renders
-        subscriptions.push(cx.observe(&character_store, |_, _, cx| {
+        let character_list_subscription = cx.observe(&character_store, |_, _, cx| {
             cx.notify();
-        }));
-
+        });
         // React to events from MainContent
-        subscriptions.push(cx.subscribe(
+        let main_content_event_subscription = cx.subscribe(
             &main_content,
             |this, _emitter, event: &MainContentEvent, cx| match event {
                 MainContentEvent::ToggleSidebar => {
@@ -43,7 +45,16 @@ impl MainView {
                     cx.notify();
                 }
             },
-        ));
+        );
+        // React when theme mode changes
+        let theme_subscription = window.observe_window_appearance(|window, cx| {
+            Theme::sync_system_appearance(Some(window), cx);
+            cx.refresh_windows();
+        });
+
+        subscriptions.push(character_list_subscription);
+        subscriptions.push(main_content_event_subscription);
+        subscriptions.push(theme_subscription);
 
         Self {
             app_title: "D&D Derive".into(),
@@ -71,11 +82,7 @@ impl Render for MainView {
                 TitleBar::new()
                     .bg(cx.theme().background)
                     .border_color(cx.theme().border)
-                    .child(
-                        div()
-                            .text_color(cx.theme().foreground)
-                            .child(self.app_title.clone()),
-                    ),
+                    .child(div().child(self.app_title.clone())),
             )
             .child(
                 h_flex()
@@ -113,31 +120,30 @@ impl Render for MainView {
                             ))
                             .footer(
                                 SidebarFooter::new().child(
-                                    h_flex()
+                                    v_flex()
+                                        .size_full()
                                         .gap_2()
-                                        .when(!collapsed, |this| {
-                                            this.child(
-                                                Button::new("settings").label("Settings").on_click(
-                                                    cx.listener(|this, _, _, cx| {
-                                                        this.main_content.update(
-                                                            cx,
-                                                            |content, cx| {
-                                                                content.navigate(
-                                                                    AppRoute::Settings,
-                                                                    cx,
-                                                                );
-                                                            },
-                                                        );
-                                                    }),
-                                                ),
-                                            )
-                                        })
+                                        .child(
+                                            Button::new("settings")
+                                                .w_full()
+                                                .icon(IconName::Settings)
+                                                .when(!collapsed, |this| this.label("Settings"))
+                                                .on_click(cx.listener(|this, _, _, cx| {
+                                                    this.main_content.update(cx, |content, cx| {
+                                                        content.navigate(AppRoute::Settings, cx);
+                                                    });
+                                                })),
+                                        )
                                         .child(
                                             Button::new("toggle-sidebar")
+                                                .w_full()
                                                 .icon(if collapsed {
                                                     IconName::ChevronRight
                                                 } else {
                                                     IconName::ChevronLeft
+                                                })
+                                                .when(!collapsed, |this| {
+                                                    this.label("Toggle Sidebar")
                                                 })
                                                 .on_click(cx.listener(|this, _, _, cx| {
                                                     this.toggle_sidebar(cx);
