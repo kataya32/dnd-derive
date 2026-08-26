@@ -12,6 +12,7 @@ use gpui_component::sidebar::{
 use gpui_component::{
     ActiveTheme, Icon, IconName, Theme, TitleBar, button::Button, h_flex, v_flex,
 };
+use gpui_component::avatar::{Avatar, AvatarGroup};
 
 /// MainView (Sidebar + TitleBar + Content)
 pub struct MainView {
@@ -92,7 +93,7 @@ impl Render for MainView {
                             .collapsible(true)
                             .collapsed(collapsed)
                             .header(SidebarHeader::new().child(
-                                h_flex().gap_2().child(Icon::new(IconName::User)).when(
+                                h_flex().gap_2().child(Avatar::new().name("John Doe")).when(
                                     !collapsed,
                                     |this| {
                                         this.child(
@@ -109,7 +110,7 @@ impl Render for MainView {
                             .child(SidebarGroup::new("Characters").child(
                                 SidebarMenu::new().children(characters.iter().map(|c| {
                                     let id = c.id;
-                                    SidebarMenuItem::new(c.name.clone())
+                                    SidebarMenuItem::new(c.character_name.clone())
                                         .icon(IconName::User)
                                         .on_click(cx.listener(move |this, _, _, cx| {
                                             this.main_content.update(cx, |content, cx| {

@@ -10,6 +10,7 @@ use gpui_component::{
     h_flex, v_flex,
 };
 use gpui_component::{Icon, IconName};
+use gpui_component::avatar::{Avatar, AvatarGroup};
 
 pub enum MainContentEvent {
     ToggleSidebar,
@@ -75,8 +76,8 @@ impl MainContent {
                                     .gap_4()
                                     .text_2xl()
                                     .font_bold()
-                                    .child(Icon::new(IconName::User).size_10())
-                                    .child(c.name.clone()),
+                                    .child(Avatar::new().name(c.character_name.clone()).size_10())
+                                    .child(c.character_name.clone()),
                             )
                             .child(format!("{} -- (Lvl {})", c.class, c.level))
                             .on_click(cx.listener(move |this, _, _, cx| {
@@ -113,7 +114,7 @@ impl MainContent {
                     .child(
                         div().text_2xl().font_bold().child(
                             character
-                                .map(|c| c.name.clone())
+                                .map(|c| c.character_name.clone())
                                 .unwrap_or_else(|| "Unknown".into()),
                         ),
                     ),
