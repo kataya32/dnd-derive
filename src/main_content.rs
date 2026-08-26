@@ -4,13 +4,13 @@ use gpui::{
     App, Context, Div, Entity, EventEmitter, InteractiveElement, IntoElement, ParentElement,
     Render, SharedString, StatefulInteractiveElement, Styled, Subscription, Window, div,
 };
+use gpui_component::IconName;
+use gpui_component::avatar::Avatar;
 use gpui_component::{
     ActiveTheme, StyledExt,
     button::{Button, ButtonVariants},
     h_flex, v_flex,
 };
-use gpui_component::{Icon, IconName};
-use gpui_component::avatar::{Avatar, AvatarGroup};
 
 pub enum MainContentEvent {
     ToggleSidebar,
@@ -79,7 +79,7 @@ impl MainContent {
                                     .child(Avatar::new().name(c.character_name.clone()).size_10())
                                     .child(c.character_name.clone()),
                             )
-                            .child(format!("{} -- (Lvl {})", c.class, c.level))
+                            .child(format!("{} -- (Lvl {})", c.base_class, c.level))
                             .on_click(cx.listener(move |this, _, _, cx| {
                                 this.navigate(AppRoute::CharacterSheet(id), cx);
                             }))

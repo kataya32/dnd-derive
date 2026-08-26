@@ -6,13 +6,11 @@ use gpui::{
     Window, div, prelude::FluentBuilder,
 };
 
+use gpui_component::avatar::Avatar;
 use gpui_component::sidebar::{
     Sidebar, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuItem,
 };
-use gpui_component::{
-    ActiveTheme, Icon, IconName, Theme, TitleBar, button::Button, h_flex, v_flex,
-};
-use gpui_component::avatar::{Avatar, AvatarGroup};
+use gpui_component::{ActiveTheme, IconName, Theme, TitleBar, button::Button, h_flex, v_flex};
 
 /// MainView (Sidebar + TitleBar + Content)
 pub struct MainView {

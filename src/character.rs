@@ -1,5 +1,4 @@
 use gpui::{Context, SharedString};
-use gpui_component::plot::scale::ScaleOrdinal;
 
 #[derive(Clone, PartialEq, Eq, Default)]
 pub enum AdvancementType {
@@ -45,13 +44,33 @@ impl CharacterStore {
                     id: CharacterId(0),
                     character_name: "Aragorn".into(),
                     base_class: Class::Ranger,
+                    sub_classes: Vec::new(),
+                    multiclasses: Vec::new(),
                     level: 5,
+                    strength: Stat::new(16),
+                    dexterity: Stat::new(14),
+                    constitution: Stat::new(14),
+                    intelligence: Stat::new(12),
+                    wisdom: Stat::new(14),
+                    charisma: Stat::new(14),
+                    inspiration: false,
+                    background: Background::Custom,
                 },
                 CharacterSheet {
                     id: CharacterId(1),
                     character_name: "Gandalf".into(),
                     base_class: Class::Wizard,
+                    sub_classes: Vec::new(),
+                    multiclasses: Vec::new(),
                     level: 12,
+                    strength: Stat::new(10),
+                    dexterity: Stat::new(12),
+                    constitution: Stat::new(14),
+                    intelligence: Stat::new(18),
+                    wisdom: Stat::new(16),
+                    charisma: Stat::new(14),
+                    inspiration: false,
+                    background: Background::Acolyte,
                 },
             ],
         }
@@ -71,8 +90,8 @@ impl CharacterStore {
     }
 }
 
-#[derive(Clone)]
-enum Background {
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Background {
     Acolyte,
     Custom,
 }
@@ -98,7 +117,8 @@ enum Background {
 //     Survival(stat: StatType, proficient: bool, expertise: bool),
 // }
 
-enum StatType {
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum StatType {
     Strength,
     Dexterity,
     Constitution,
@@ -107,45 +127,44 @@ enum StatType {
     Charisma,
 }
 
-#[derive(Clone)]
-struct Stat {
-    score: u8,
-    modifier: i8,
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub struct Stat {
+    pub score: u8,
+    pub modifier: i8,
 }
 
 impl Stat {
-    fn new(&mut self, score: u8) -> Stat {
-        let stat = Self {
+    pub fn new(score: u8) -> Stat {
+        let mut stat = Self {
             score: 0,
             modifier: 0,
         };
-        self.set(score);
+        stat.set(score);
         stat
     }
 
-    fn set(&mut self, score: u8) {
+    pub fn set(&mut self, score: u8) {
         self.score = score;
-        let mut modifier: i8 = 0;
-        match score {
-            1 => modifier = -5,
-            2 | 3 => modifier = -4,
-            4 | 5 => modifier = -3,
-            6 | 7 => modifier = -2,
-            8 | 9 => modifier = -1,
-            10 | 11 => modifier = 0,
-            12 | 13 => modifier = 1,
-            14 | 15 => modifier = 2,
-            16 | 17 => modifier = 3,
-            18 | 19 => modifier = 4,
-            20 | 21 => modifier = 5,
-            22 | 23 => modifier = 6,
-            24 | 25 => modifier = 7,
-            26 | 27 => modifier = 8,
-            28 | 29 => modifier = 9,
-            30 => modifier = 10,
-            _ => modifier = 0,
-        }
-        self.modifier = modifier
+        let modifier = match score {
+            1 => -5,
+            2 | 3 => -4,
+            4 | 5 => -3,
+            6 | 7 => -2,
+            8 | 9 => -1,
+            10 | 11 => 0,
+            12 | 13 => 1,
+            14 | 15 => 2,
+            16 | 17 => 3,
+            18 | 19 => 4,
+            20 | 21 => 5,
+            22 | 23 => 6,
+            24 | 25 => 7,
+            26 | 27 => 8,
+            28 | 29 => 9,
+            30 => 10,
+            _ => 0,
+        };
+        self.modifier = modifier;
     }
 }
 
@@ -165,12 +184,11 @@ pub struct CharacterSheet {
     pub charisma: Stat,
     pub inspiration: bool,
     pub background: Background,
-
     // add race, portrait, etc. later
 }
 
 impl CharacterSheet {
-    fn proficiency_bonus(&self) -> u8 {
+    pub fn proficiency_bonus(&self) -> u8 {
         match self.level {
             1 | 2 | 3 | 4 => 2,
             5 | 6 | 7 | 8 => 3,
@@ -185,12 +203,12 @@ impl CharacterSheet {
     }
 
     // ToDo: Needs implemented
-    fn saving_throw(&self, stat_type: StatType) -> i8 {
+    pub fn saving_throw(&self, _stat_type: StatType) -> i8 {
         0
     }
 
     // ToDo: Needs Implemented
-    fn saving_throw_proficiency(&self) -> i8 {
+    pub fn saving_throw_proficiency(&self) -> i8 {
         0
     }
 }
@@ -210,11 +228,22 @@ pub struct CharacterCreationState {
     // ... spells, equipment, etc.
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Class {
     Barbarian,
     Artificer,
     Ranger,
     Wizard,
     // ToDo: Flush this out
+}
+
+impl std::fmt::Display for Class {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Class::Barbarian => write!(f, "Barbarian"),
+            Class::Artificer => write!(f, "Artificer"),
+            Class::Ranger => write!(f, "Ranger"),
+            Class::Wizard => write!(f, "Wizard"),
+        }
+    }
 }
