@@ -96,26 +96,11 @@ pub enum Background {
     Custom,
 }
 
-// enum Skill {
-//     Acrobatics(stat: StatType, proficient: bool, expertise: bool),
-//     Animal Handling(stat: StatType, proficient: bool, expertise: bool),
-//     Arcana(stat: StatType, proficient: bool, expertise: bool),
-//     Athletics(stat: StatType, proficient: bool, expertise: bool),
-//     Deception(stat: StatType, proficient: bool, expertise: bool),
-//     History(stat: StatType, proficient: bool, expertise: bool),
-//     Insight(stat: StatType, proficient: bool, expertise: bool),
-//     Intimidation(stat: StatType, proficient: bool, expertise: bool),
-//     Investigation(stat: StatType, proficient: bool, expertise: bool),
-//     Medicine(stat: StatType, proficient: bool, expertise: bool),
-//     Nature(stat: StatType, proficient: bool, expertise: bool),
-//     Perception(stat: StatType, proficient: bool, expertise: bool),
-//     Performance(stat: StatType, proficient: bool, expertise: bool),
-//     Persuasion(stat: StatType, proficient: bool, expertise: bool),
-//     Religion(stat: StatType, proficient: bool, expertise: bool),
-//     SleightOfHand(stat: StatType, proficient: bool, expertise: bool),
-//     Stealth(stat: StatType, proficient: bool, expertise: bool),
-//     Survival(stat: StatType, proficient: bool, expertise: bool),
-// }
+struct Skill {
+    stat: StatType,
+    proficient: bool,
+    expertise: bool,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum StatType {
@@ -176,14 +161,19 @@ pub struct CharacterSheet {
     pub sub_classes: Vec<Class>,
     pub multiclasses: Vec<Class>,
     pub level: u8,
+    // Stats
     pub strength: Stat,
     pub dexterity: Stat,
     pub constitution: Stat,
     pub intelligence: Stat,
     pub wisdom: Stat,
     pub charisma: Stat,
+    //---
     pub inspiration: bool,
     pub background: Background,
+    // Skills
+    pub acrobatics: Skill,
+    // ---
     // add race, portrait, etc. later
 }
 

@@ -2,15 +2,16 @@ use crate::app_routes::AppRoute;
 use crate::character::{CharacterCreationState, CharacterId, CharacterStore};
 use gpui::{
     App, Context, Div, Entity, EventEmitter, InteractiveElement, IntoElement, ParentElement,
-    Render, SharedString, StatefulInteractiveElement, Styled, Subscription, Window, div,
+    Render, SharedString, StatefulInteractiveElement, Styled, Subscription, Window, div, px,
 };
-use gpui_component::IconName;
 use gpui_component::avatar::Avatar;
+use gpui_component::group_box::{GroupBox, GroupBoxVariant, GroupBoxVariants as _};
 use gpui_component::{
     ActiveTheme, StyledExt,
     button::{Button, ButtonVariants},
     h_flex, v_flex,
 };
+use gpui_component::{IconName, group_box};
 
 pub enum MainContentEvent {
     ToggleSidebar,
@@ -96,10 +97,11 @@ impl MainContent {
 
     fn render_character_sheet(&self, id: CharacterId, cx: &mut Context<Self>) -> Div {
         let character = self.character_store.read(cx).get(id);
-        v_flex()
+        v_flex().flex_1().min_w(px(0.0))
             .size_full()
             .p_6()
             .gap_4()
+            // Character Header
             .child(
                 h_flex()
                     .gap_4()
@@ -119,23 +121,58 @@ impl MainContent {
                         ),
                     ),
             )
+            // Stats Row
             .child(section_header("Stats & Core"))
             .child(placeholder_box(
                 "Ability Scores • Proficiency Bonus • Speed • HP",
                 cx,
             ))
-            .child(section_header("Saving Throws & Skills"))
-            .child(placeholder_box(
-                "Saving Throws • Skills • Passive Perception",
-                cx,
-            ))
-            .child(section_header("Proficiencies & Languages"))
-            .child(placeholder_box("Armor • Weapons • Tools • Languages", cx))
-            .child(section_header("Tabs"))
-            .child(placeholder_box(
-                "Actions | Spells | Inventory | Features & Traits | Background | Notes | Extras",
-                cx,
-            ))
+            .child(
+                h_flex()
+                    .gap_2()
+                    .justify_between()
+                    .min_w(px(0.0))
+                    // Start1
+                    .child(
+                        v_flex()
+                            // Saving Throws
+                            .child(GroupBox::new().outline().title("Saving Throws")
+                                .child("Strength")
+                                .child("Dexterity")
+                                .child("Constitution")
+                                .child("Wisdom")
+                                .child("Intelegince")
+                                .child("Charisma")
+                            )
+                            .child(section_header("Senses"))
+                            .child(section_header("Proficient and training"))
+
+                    )
+                    // End1
+                    // Start2
+                    .child(
+                        v_flex()
+                            .child(section_header("Skills"))
+                    )
+                    // End2
+                    // Start3
+                    .child(
+                        v_flex()
+                            .child(
+                                h_flex().gap_2()
+                                    .child(placeholder_box("Initiative", cx))
+                                    .child(placeholder_box("Armor Class", cx))
+                                    .child(placeholder_box("Defenses | Conditions", cx))
+
+                            )
+                            .child(section_header("Tabs"))
+                            .child(placeholder_box(
+                            "Actions | Spells | Inventory | Features & Traits | Background | Notes | Extras",
+                            cx,
+                        ))
+                    )
+                    // End3
+            )
             .child(section_header("Dice Rolling"))
             .child(placeholder_box("Quick dice roller UI goes here", cx))
     }
