@@ -1,5 +1,7 @@
 use gpui::{Context, SharedString};
 
+use crate::character::Class::Barbarian;
+
 #[derive(Clone, PartialEq, Eq, Default)]
 pub enum AdvancementType {
     #[default]
@@ -55,6 +57,8 @@ impl CharacterStore {
                     charisma: Stat::new(14),
                     inspiration: false,
                     background: Background::Custom,
+
+                    ..Default::default()
                 },
                 CharacterSheet {
                     id: CharacterId(1),
@@ -71,6 +75,8 @@ impl CharacterStore {
                     charisma: Stat::new(14),
                     inspiration: false,
                     background: Background::Acolyte,
+
+                    ..Default::default()
                 },
             ],
         }
@@ -93,13 +99,39 @@ impl CharacterStore {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Background {
     Acolyte,
+    Artisan,
+    Charlatan,
+    Criminal,
+    Entertainer,
+    Farmer,
+    Guard,
+    Guide,
+    Hermit,
+    Merchant,
+    Noble,
+    Sage,
+    Sailor,
+    Scribe,
+    Soldier,
+    Wayfarer,
     Custom,
 }
 
+#[derive(Clone)]
 struct Skill {
     stat: StatType,
     proficient: bool,
     expertise: bool,
+}
+
+impl Skill {
+    pub fn new(stat: StatType) -> Self {
+        Self {
+            stat,
+            proficient: false,
+            expertise: false,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -173,8 +205,64 @@ pub struct CharacterSheet {
     pub background: Background,
     // Skills
     pub acrobatics: Skill,
+    pub animal_handling: Skill,
+    pub arcana: Skill,
+    pub athletics: Skill,
+    pub deception: Skill,
+    pub history: Skill,
+    pub insight: Skill,
+    pub intimidation: Skill,
+    pub investigation: Skill,
+    pub medicine: Skill,
+    pub nature: Skill,
+    pub perception: Skill,
+    pub performance: Skill,
+    pub persuasion: Skill,
+    pub religion: Skill,
+    pub sleight_of_hand: Skill,
+    pub stealth: Skill,
+    pub survival: Skill,
     // ---
     // add race, portrait, etc. later
+}
+
+impl Default for CharacterSheet {
+    fn default() -> Self {
+        Self {
+            id: CharacterId(0),
+            character_name: SharedString::new("Name"),
+            base_class: Class::Barbarian,
+            sub_classes: Vec::new(),
+            multiclasses: Vec::new(),
+            level: 1,
+            strength: Stat::new(10),
+            dexterity: Stat::new(10),
+            constitution: Stat::new(10),
+            intelligence: Stat::new(10),
+            wisdom: Stat::new(10),
+            charisma: Stat::new(10),
+            inspiration: false,
+            background: Background::Acolyte,
+            acrobatics: Skill::new(StatType::Dexterity),
+            animal_handling: Skill::new(StatType::Wisdom),
+            arcana: Skill::new(StatType::Intelligence),
+            athletics: Skill::new(StatType::Strength),
+            deception: Skill::new(StatType::Charisma),
+            history: Skill::new(StatType::Intelligence),
+            insight: Skill::new(StatType::Wisdom),
+            intimidation: Skill::new(StatType::Charisma),
+            investigation: Skill::new(StatType::Intelligence),
+            medicine: Skill::new(StatType::Wisdom),
+            nature: Skill::new(StatType::Intelligence),
+            perception: Skill::new(StatType::Wisdom),
+            performance: Skill::new(StatType::Charisma),
+            persuasion: Skill::new(StatType::Charisma),
+            religion: Skill::new(StatType::Intelligence),
+            sleight_of_hand: Skill::new(StatType::Dexterity),
+            stealth: Skill::new(StatType::Dexterity),
+            survival: Skill::new(StatType::Wisdom),
+        }
+    }
 }
 
 impl CharacterSheet {
@@ -191,16 +279,16 @@ impl CharacterSheet {
             _ => 0,
         }
     }
+}
 
-    // ToDo: Needs implemented
-    pub fn saving_throw(&self, _stat_type: StatType) -> i8 {
-        0
-    }
+// ToDo: Needs implemented
+pub fn saving_throw(_stat_type: StatType) -> i8 {
+    0
+}
 
-    // ToDo: Needs Implemented
-    pub fn saving_throw_proficiency(&self) -> i8 {
-        0
-    }
+// ToDo: Needs Implemented
+pub fn saving_throw_proficiency() -> i8 {
+    0
 }
 
 #[derive(Clone, Default)]
@@ -220,19 +308,36 @@ pub struct CharacterCreationState {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Class {
-    Barbarian,
     Artificer,
+    Barbarian,
+    Bard,
+    Cleric,
+    Druid,
+    Fighter,
+    Monk,
+    Paladin,
     Ranger,
+    Rogue,
+    Sorcerer,
+    Warlock,
     Wizard,
-    // ToDo: Flush this out
 }
 
 impl std::fmt::Display for Class {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Class::Barbarian => write!(f, "Barbarian"),
             Class::Artificer => write!(f, "Artificer"),
+            Class::Barbarian => write!(f, "Barbarian"),
+            Class::Bard => write!(f, "Bard"),
+            Class::Cleric => write!(f, "Cleric"),
+            Class::Druid => write!(f, "Druid"),
+            Class::Fighter => write!(f, "Fighter"),
+            Class::Monk => write!(f, "Monk"),
+            Class::Paladin => write!(f, "Paladin"),
             Class::Ranger => write!(f, "Ranger"),
+            Class::Rogue => write!(f, "Rogue"),
+            Class::Sorcerer => write!(f, "Sorcerer"),
+            Class::Warlock => write!(f, "Warlock"),
             Class::Wizard => write!(f, "Wizard"),
         }
     }
